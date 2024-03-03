@@ -7,20 +7,16 @@
 #include <algorithm>
 
 using namespace Objects;
+using namespace std;
 
 namespace Mechanics //normally would be server-sided
 {
 	static std::list<Entity*> EntList = std::list<Entity*>(); //'global' entity list
 
-	UID GetEntityInShotLine(Entity* shooter, Shot* shot);
-
 	bool IsColliding(Point3 StartPosition, Vector3 ShootDirection, Point3 TargetPosition, Vector3 TargetWidthHeightDepth);
 
-	Shot* EntityShootInDirection(Entity* Shooter, Vector3 aim);
+	list<UID> GetEntityInShotLine(std::list<Entity*> PlayerList, Entity* shooter, Shot* shot);
 
-	namespace Cheater
-	{
-		double GetCorrectiveAngle(Shot* s, Entity* Target); //this is our 'aimbot' - should calculate the vector needed to hit a target when our shot is not on target.
-		Vector3 GetCorrectiveVector(Shot* s, Entity* e, float speed);
-	}
+	double GetCorrectiveAngle(Shot* s, Entity* Target); //calculate the vector needed to hit a target
+	Vector3 GetCorrectiveVector(Shot* s, Entity* e, float speed);
 }

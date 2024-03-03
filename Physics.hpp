@@ -1,20 +1,32 @@
+//AlSch092 @ github
 #pragma once
 
 namespace Phys
 {
-	struct Vector3 //vector represents line going in some direction forever
+	struct Vector3 //a vector in 3d space (infinite mag)
 	{
-		float X, Y, Z;
+		double X, Y, Z;
 	};
 
-	struct Point3
+	struct Point3 //a point in 3d space
 	{
-		float X, Y, Z;
+		double X, Y, Z;
 	};
 
-	struct Line3
+	struct Line3 //finite line
 	{
 		Point3 Position;
 		Vector3 Direction;
+		double Length;
 	};
+
+	struct Point2
+	{
+		double X;
+		double Y;
+	};
+
+	double CalculateSlope(Point2 p1, Point2 p2); //slope between two 2D points -> can be used for detecting first-person aiming anomalies
+	
+	bool IsFunctionLinear(Point2 points[], int num_points);
 }

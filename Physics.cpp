@@ -1,3 +1,4 @@
+//AlSch092 @ github
 #include "Physics.hpp"
 
 using namespace Phys;
@@ -25,4 +26,9 @@ bool Phys::IsFunctionLinear(Point2 points[], int num_points) {
 	}
 
 	return true; 
+}
+
+double Phys::CalculateDistance(Point2 p1, Point2 p2) 
+{
+	return sqrt(pow(p2.X - p1.X, 2) + pow(p2.Y - p1.Y, 2));
 }

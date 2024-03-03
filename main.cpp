@@ -8,6 +8,6 @@ By AlSch092 @ Github, for educational & research purposes
 int main(int argc, char** argv)
 {
 	Simulation::Run();
-
+	system("pause");
 	return 0;
 }

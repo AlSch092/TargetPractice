@@ -1,32 +1,50 @@
+//AlSch092 @ github
 #include "Simulation.hpp"
 
+//we are assuming this is given data from the server-side, thus client-side CPU-hangs resulting in skipped frames and latency are not accounted for
 void Simulation::Run()
 {
-	TestBasicPhysics(); //see if our simple 3D space works
+	TestBasicPhysics();
+
+	printf("\n[INFO - Simulation::Run] Testing dataset-related techniques: \n");
 
 	Entity* potential_cheater = new Entity(1);
 
-	std::list<Point2> dragOffsets_preShot = { { 0.0f, 2.0f }, { 2.0f, 4.0f }, { 3.0f, 6.0f }, { 4.0f, 8.0f } };
+	//set is linear until last point, where it suddenly skips past our threshold amount: our second method will detect it as cheating but first method will pass
+	std::list<Point2> mouseAim_preShot = { { 1.0f, 2.0f }, { 2.0f, 4.0f }, { 3.0f, 6.0f }, { 4.0f, 8.0f }, { 5.0f, 10.0f }, { 15.0f, 15.0f } };
 
-	if (WasPlayersAimLinearFunction(potential_cheater, dragOffsets_preShot))
+	if (WasPlayersAimLinearFunction(potential_cheater, mouseAim_preShot))
 	{
-		printf("Player %d's aim was perfectly linear on the last shot", potential_cheater->unique_id);
+		printf("Player %d's aim was perfectly linear: possibly cheating.\n", potential_cheater->UniqueId);
 	}
 	else
 	{
-		printf("The dataset of player %d's shot aim looks ok!\n");
+		printf("The dataset of player %d's shot aim looks ok!\n", potential_cheater->UniqueId);
 	}
+
+	if (AreFramesSkipped(mouseAim_preShot, 10.0f))
+	{
+		printf("Player's aim skips faster than our threshold allows, possibly cheating.\n");
+		potential_cheater->FlaggedAsCheater = true;
+	}
+
+	delete potential_cheater;
 }
 
-
-//the previous 1 second of data from the PoV of a player shooting: 
+//the previous X frames from the PoV of a player shooting: 
 //if the function/line created by a player's 'drag' of the mouse is linear, it's probably a cheater
 // -> if the tangents equal at every point in this set, the function is linear and thus "unnatural" 
 bool Simulation::WasPlayersAimLinearFunction(Entity* actor, std::list<Point2> mouseDragOffsets)
 {
-	if (mouseDragOffsets.size() == 0)
+	if (mouseDragOffsets.size() < 2 )
 	{
-		printf("Data set anomaly\n");
+		printf("WasPlayersAimLinearFunction: Data set anomaly\n");
+		return false;
+	}
+
+	if (actor == NULL)
+	{
+		printf("Actor pointer was NULL\n");
 		return false;
 	}
 
@@ -41,9 +59,40 @@ bool Simulation::WasPlayersAimLinearFunction(Entity* actor, std::list<Point2> mo
 
 	delete Points;
 
+	actor->FlaggedAsCheater = true;
 	return isLinear;
 }
 
+bool Simulation::AreFramesSkipped(list<Point2> mouseDragOffsets, double threshold)
+{
+	if (mouseDragOffsets.size() < 2)
+	{
+		printf("AreFramesSkipped: Data set anomaly\n");
+		return false;
+	}
+
+	Point2* Points = new Point2[mouseDragOffsets.size()];
+
+	size_t i = 0;
+
+	for (const auto& point : mouseDragOffsets)
+		Points[i++] = point;
+
+	//get distance between each consequtive point, since aiming creates points over time.
+	//usually we expect to get N points over X milliseconds, with there being a max distance the mouse can move within that time frame. 
+	for (int i = 0; i < mouseDragOffsets.size() - 1; i++)  
+	{
+		double distance = CalculateDistance(Points[i], Points[i + 1]);
+		if (distance > threshold) 
+		{
+			delete[] Points;
+			return true; // Found an invalid point
+		}
+	}
+
+	delete[] Points;
+	return false;
+}
 
 void Simulation::TestBasicPhysics()
 {
@@ -78,7 +127,7 @@ void Simulation::TestBasicPhysics()
 	if (EntityIdCollision.size() > 0)
 	{
 		for each (UID id in EntityIdCollision)
-			printf("[GAME] Player %d's shot hit %d!\n", e->unique_id, id);
+			printf("[GAME] Player %d's shot hit %d!\n", e->UniqueId, id);
 	}
 	
 	Shot* s_1 = new Shot();

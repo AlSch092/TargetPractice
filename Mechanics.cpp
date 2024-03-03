@@ -1,3 +1,4 @@
+//AlSch092 @ github
 #include "Mechanics.hpp"
 
 bool Mechanics::IsColliding(Point3 StartPosition, Vector3 ShootDirection, Point3 TargetPosition, Vector3 TargetWidthHeightDepth) 
@@ -47,8 +48,8 @@ std::list<UID> Mechanics::GetEntityInShotLine(list<Entity*> PlayerList, Entity* 
 	{
 		if (Mechanics::IsColliding(shot->StartPosition, shot->Direction, e->StandingPosition, e->Size) && shooter != e)
 		{
-			printf("Player %d's shot hit Entity %d!\n", shooter->unique_id, e->unique_id);
-			actorsHit.push_back(e->unique_id);
+			printf("Player %d's shot hit Entity %d!\n", shooter->UniqueId, e->UniqueId);
+			actorsHit.push_back(e->UniqueId);
 		}
 	}
 

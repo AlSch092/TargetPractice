@@ -1,3 +1,4 @@
+//AlSch092 @ github
 #pragma once
 #include "Physics.hpp"
 
@@ -21,7 +22,7 @@ namespace Objects
 
 		unsigned int TimeElapsed = 0; //our equations should be as a function of time, since targets can be moving while a shot travels through the air
 
-		Point3 IntersectPoint;
+		Point3 IntersectPoint; //shots are infinite vectors if they hit no objects, 
 		bool Collided = false;
 
 		Line3 FinalTrajectory; //when a shot has collided with a target we can fill in the Line it creates from its starting position to collision. if no collision this tends towards +/- infinity
@@ -31,7 +32,7 @@ namespace Objects
 	class Entity //our entity is essentially a line which is transformed on the xyz axis
 	{
 	public:
-		Entity(int id) { unique_id = id; }
+		Entity(int id) { UniqueId = id; }
 
 		Point3 StandingPosition;
 		Vector3 PointingAt;
@@ -39,8 +40,10 @@ namespace Objects
 		unsigned int Type; //for hitbox sizing purposes, consider it your 'character' type. Size parameter would be set based on Type
 		Vector3 Size; //hitbox
 
-		UID unique_id; //identifier
+		UID UniqueId; //identifier
 		unsigned int Hitpoints = 100;
+
+		bool FlaggedAsCheater;
 
 		Shot* ShootInDirection(Vector3 aim);
 	};

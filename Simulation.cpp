@@ -1,25 +1,24 @@
 //AlSch092 @ github
 #include "Simulation.hpp"
 
-//we are assuming this is given data from the server-side, thus client-side CPU-hangs resulting in skipped frames and latency are not accounted for
-void Simulation::Run()
+//for such tests we are assuming this is data recieved the server-side
+void Simulation::RunAllTestCases()
 {
-	TestBasicPhysics();
-
 	printf("\n[INFO - Simulation::Run] Testing dataset-related techniques: \n");
 
 	Entity* potential_cheater = new Entity(1);
 
 	//set is linear until last point, where it suddenly skips past our threshold amount: our second method will detect it as cheating but first method will pass
-	std::list<Point2> mouseAim_preShot = { { 1.0f, 2.0f }, { 2.0f, 4.0f }, { 3.0f, 6.0f }, { 4.0f, 8.0f }, { 5.0f, 10.0f }, { 15.0f, 15.0f } };
+	list<Point2> mouseAim_preShot = { { 1.0f, 2.0f }, { 2.0f, 4.0f }, { 3.0f, 6.0f }, { 4.0f, 8.0f }, { 5.0f, 10.0f }, { 15.0f, 15.0f } };
 
 	if (WasPlayersAimLinearFunction(potential_cheater, mouseAim_preShot))
 	{
-		printf("Player %d's aim was perfectly linear: possibly cheating.\n", potential_cheater->UniqueId);
+		printf("Player %d's aim was linear: possibly cheating.\n", potential_cheater->UniqueId);
+		potential_cheater->FlaggedAsCheater = true;
 	}
 	else
 	{
-		printf("The dataset of player %d's shot aim looks ok!\n", potential_cheater->UniqueId);
+		printf("The dataset of player %d's shot aim looks okay!\n", potential_cheater->UniqueId);
 	}
 
 	if (AreFramesSkipped(mouseAim_preShot, 10.0f))
@@ -28,13 +27,60 @@ void Simulation::Run()
 		potential_cheater->FlaggedAsCheater = true;
 	}
 
+	list<Point2> mouseAim_StraightLineNorth = { { 0.0f, 0.0f }, { 0.0f, 4.0f }, { 0.0f, 6.0f }, { 0.0f, 8.0f }, { 0.0f, 10.0f }, { 0.0f, 12.0f } };
+
+	if (WasPlayersAimLinearFunction(potential_cheater, mouseAim_StraightLineNorth))
+	{
+		printf("Player %d's aim was linear: possibly cheating.\n", potential_cheater->UniqueId);
+	}
+	else
+	{
+		printf("The dataset of player %d's shot aim looks ok!\n", potential_cheater->UniqueId);
+	}
+
+	//last 5 points in dataset are colinear
+	list<Point2> mouseAim_Sample = { { 1, 1 }, { 1, 3 }, { 2, 4 }, { 4, 4 }, { 5, 6 }, { 6, 4 }, { 7, 6 }, { 8, 5 }, { 9, 10 }, { 14, 14 }, { 16, 12 }, { 18, 12 }, { 16, 14 }, { 17, 15 }, { 18, 16 }, { 19, 17 }, { 20, 18 }, { 21, 19 } };
+
+	int colinear_threshold = 5; //colinear points within the dataset could indicate a cheat tool is auto-correcting aim to hit targets last-second
+
+	if (HasColinearPoints(mouseAim_Sample, colinear_threshold))
+	{
+		printf("Player %d's aim was likely auto-corrected by a cheat to hit the target: %d points were found to be colinear\n", potential_cheater->UniqueId);
+		potential_cheater->FlaggedAsCheater = true;
+	}
+
 	delete potential_cheater;
+}
+
+//::HasColinearPoints helps us detect datasets where a player is aiming at another player and a cheat tool corrects their aim last second
+// -> Checks if a linear function is within a subset of points
+//threshold is the number of points in a row within the dataset to test. 
+bool Simulation::HasColinearPoints(list<Point2> mouseDragOffsets, int threshold)
+{
+	bool result = false;
+	Point2* Points = new Point2[mouseDragOffsets.size()];
+
+	size_t i = 0;
+
+	for (const auto& point : mouseDragOffsets)
+		Points[i++] = point;
+
+	for (int j = 0; j < i - threshold; j++)
+	{
+		bool isLinear = Phys::IsFunctionLinear(&Points[j], threshold);
+
+		if (isLinear)
+			result = true;
+	}
+
+	delete[] Points;
+	return result;
 }
 
 //the previous X frames from the PoV of a player shooting: 
 //if the function/line created by a player's 'drag' of the mouse is linear, it's probably a cheater
 // -> if the tangents equal at every point in this set, the function is linear and thus "unnatural" 
-bool Simulation::WasPlayersAimLinearFunction(Entity* actor, std::list<Point2> mouseDragOffsets)
+bool Simulation::WasPlayersAimLinearFunction(Entity* actor, list<Point2> mouseDragOffsets)
 {
 	if (mouseDragOffsets.size() < 2 )
 	{
@@ -94,7 +140,7 @@ bool Simulation::AreFramesSkipped(list<Point2> mouseDragOffsets, double threshol
 	return false;
 }
 
-void Simulation::TestBasicPhysics()
+void Simulation::TestBasicPhysics() //simple 3d space tests, not related to data set tests
 {
 	Entity* e = new Entity(1);
 	e->StandingPosition = { -2.0, 2.0, 2.0 };

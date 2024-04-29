@@ -3,6 +3,20 @@
 #include "Mechanics.hpp"
 #include <stdio.h>
 
+
+template<typename T>
+class Dataset
+{
+public:
+	
+	list<T> GetDataSet() { return this->Data; }
+
+	void AddData(T data) { Data.push_back(data); }
+
+private:
+	list<T> Data;
+};
+
 namespace Simulation
 {
 	void RunAllTestCases();

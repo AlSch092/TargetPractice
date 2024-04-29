@@ -40,7 +40,7 @@ namespace Objects
 		unsigned int Type; //for hitbox sizing purposes, consider it your 'character' type. Size parameter would be set based on Type
 		Vector3 Size; //hitbox
 
-		UID UniqueId; //identifier
+		UID UniqueId = 0; //identifier
 		unsigned int Hitpoints = 100;
 
 		bool FlaggedAsCheater;

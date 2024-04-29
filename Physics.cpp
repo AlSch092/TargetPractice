@@ -18,7 +18,7 @@ bool Phys::IsFunctionLinear(Point2 points[], int num_points) {
 	
 	double slope = Phys::CalculateSlope(points[0], points[1]); //first tangent slope in set, now check if the rest are equal
 
-	for (int i = 1; i < num_points - 1; i++) 
+	for (int i = 1; i < num_points - 2; i++) 
 	{
 		double current_slope = Phys::CalculateSlope(points[i], points[i + 1]);
 		if (current_slope != slope) 		

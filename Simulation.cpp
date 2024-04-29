@@ -6,12 +6,19 @@ void Simulation::RunAllTestCases()
 {
 	printf("\n[INFO - Simulation::Run] Testing dataset-related techniques: \n");
 
-	Entity* potential_cheater = new Entity(1);
+	//this dataset is linear until last point, where it suddenly skips past our threshold amount: our second method will detect it as cheating but first method will pass
+	Dataset<Point2>* Dataset_MouseAim = new Dataset<Point2>(); 
+	Dataset_MouseAim->AddData({ 1.0f, 2.0f });
+	Dataset_MouseAim->AddData({ 2.0f, 4.0f });
+	Dataset_MouseAim->AddData({ 3.0f, 6.0f });
+	Dataset_MouseAim->AddData({ 4.0f, 8.0f });
+	Dataset_MouseAim->AddData({ 5.0f, 10.0f });
+	Dataset_MouseAim->AddData({ 15.0f, 15.0f });
 
-	//set is linear until last point, where it suddenly skips past our threshold amount: our second method will detect it as cheating but first method will pass
-	list<Point2> mouseAim_preShot = { { 1.0f, 2.0f }, { 2.0f, 4.0f }, { 3.0f, 6.0f }, { 4.0f, 8.0f }, { 5.0f, 10.0f }, { 15.0f, 15.0f } };
+	int currentId = 1;
+	Entity* potential_cheater = new Entity(currentId);
 
-	if (WasPlayersAimLinearFunction(potential_cheater, mouseAim_preShot))
+	if (WasPlayersAimLinearFunction(potential_cheater, Dataset_MouseAim->GetDataSet()))
 	{
 		printf("Player %d's aim was linear: possibly cheating.\n", potential_cheater->UniqueId);
 		potential_cheater->FlaggedAsCheater = true;
@@ -21,15 +28,21 @@ void Simulation::RunAllTestCases()
 		printf("The dataset of player %d's shot aim looks okay!\n", potential_cheater->UniqueId);
 	}
 
-	if (AreFramesSkipped(mouseAim_preShot, 10.0f))
+	if (AreFramesSkipped(Dataset_MouseAim->GetDataSet(), 10.0f))
 	{
 		printf("Player's aim skips faster than our threshold allows, possibly cheating.\n");
 		potential_cheater->FlaggedAsCheater = true;
 	}
 
-	list<Point2> mouseAim_StraightLineNorth = { { 0.0f, 0.0f }, { 0.0f, 4.0f }, { 0.0f, 6.0f }, { 0.0f, 8.0f }, { 0.0f, 10.0f }, { 0.0f, 12.0f } };
+	Dataset<Point2>* Dataset_MouseAimLinear = new Dataset<Point2>();
+	Dataset_MouseAimLinear->AddData({ 0.0f, 0.0f });
+	Dataset_MouseAimLinear->AddData({ 0.0f, 4.0f });
+	Dataset_MouseAimLinear->AddData({ 0.0f, 6.0f });
+	Dataset_MouseAimLinear->AddData({ 0.0f, 8.0f });
+	Dataset_MouseAimLinear->AddData({ 0.0f, 10.0f });
+	Dataset_MouseAimLinear->AddData({ 0.0f, 12.0f });
 
-	if (WasPlayersAimLinearFunction(potential_cheater, mouseAim_StraightLineNorth))
+	if (WasPlayersAimLinearFunction(potential_cheater, Dataset_MouseAimLinear->GetDataSet()))
 	{
 		printf("Player %d's aim was linear: possibly cheating.\n", potential_cheater->UniqueId);
 	}
@@ -39,16 +52,38 @@ void Simulation::RunAllTestCases()
 	}
 
 	//last 5 points in dataset are colinear
-	list<Point2> mouseAim_Sample = { { 1, 1 }, { 1, 3 }, { 2, 4 }, { 4, 4 }, { 5, 6 }, { 6, 4 }, { 7, 6 }, { 8, 5 }, { 9, 10 }, { 14, 14 }, { 16, 12 }, { 18, 12 }, { 16, 14 }, { 17, 15 }, { 18, 16 }, { 19, 17 }, { 20, 18 }, { 21, 19 } };
+	Dataset<Point2>* Dataset_MouseAimColinear = new Dataset<Point2>();
+	Dataset_MouseAimColinear->AddData({ 0.0f, 0.0f });
+	Dataset_MouseAimColinear->AddData({ 1, 1 }); //not colinear
+	Dataset_MouseAimColinear->AddData({ 1, 3 });
+	Dataset_MouseAimColinear->AddData({ 2, 4 });
+	Dataset_MouseAimColinear->AddData({ 4, 4 });
+	Dataset_MouseAimColinear->AddData({ 5, 6 });
+	Dataset_MouseAimColinear->AddData({ 6, 4 });
+	Dataset_MouseAimColinear->AddData({ 7, 6 });
+	Dataset_MouseAimColinear->AddData({ 8, 5 });
+	Dataset_MouseAimColinear->AddData({ 9, 10 });
+	Dataset_MouseAimColinear->AddData({ 14, 14 });
+	Dataset_MouseAimColinear->AddData({ 16, 12 });
+	Dataset_MouseAimColinear->AddData({ 18, 12 });
+	Dataset_MouseAimColinear->AddData({ 16, 14 });
+
+	Dataset_MouseAimColinear->AddData({ 17, 15 }); //colinear
+	Dataset_MouseAimColinear->AddData({ 18, 16 });
+	Dataset_MouseAimColinear->AddData({ 19, 17 });
+	Dataset_MouseAimColinear->AddData({ 20, 18 });
+	Dataset_MouseAimColinear->AddData({ 21, 19 });
 
 	int colinear_threshold = 5; //colinear points within the dataset could indicate a cheat tool is auto-correcting aim to hit targets last-second
 
-	if (HasColinearPoints(mouseAim_Sample, colinear_threshold))
+	if (HasColinearPoints(Dataset_MouseAimColinear->GetDataSet(), colinear_threshold))
 	{
-		printf("Player %d's aim was likely auto-corrected by a cheat to hit the target: %d points were found to be colinear\n", potential_cheater->UniqueId);
+		printf("Player %d's aim was likely auto-corrected by a cheat to hit the target .. points were found to be colinear\n", potential_cheater->UniqueId);
 		potential_cheater->FlaggedAsCheater = true;
 	}
 
+	delete Dataset_MouseAim;
+	delete Dataset_MouseAimLinear;
 	delete potential_cheater;
 }
 
@@ -58,22 +93,27 @@ void Simulation::RunAllTestCases()
 bool Simulation::HasColinearPoints(list<Point2> mouseDragOffsets, int threshold)
 {
 	bool result = false;
-	Point2* Points = new Point2[mouseDragOffsets.size()];
+	int count = 0;
 
-	size_t i = 0;
-
-	for (const auto& point : mouseDragOffsets)
-		Points[i++] = point;
-
-	for (int j = 0; j < i - threshold; j++)
+	Point2* pt_list = new Point2[mouseDragOffsets.size()]; //copy managed list to contiguous array such that we can compare subsets with changing index counts
+	
+	std::list<Point2>::iterator it;
+	for (it = mouseDragOffsets.begin(); it != mouseDragOffsets.end(); ++it) 
 	{
-		bool isLinear = Phys::IsFunctionLinear(&Points[j], threshold);
+		pt_list[count].X = it._Ptr->_Myval.X;
+		pt_list[count].Y = it._Ptr->_Myval.Y;
+		count++;
+	}
+
+	for (int j = 0; j < count - threshold; j++)
+	{
+		bool isLinear = Phys::IsFunctionLinear(&pt_list[j], threshold); //perfectly linear means someone is probably cheating
 
 		if (isLinear)
 			result = true;
 	}
 
-	delete[] Points;
+	delete[] pt_list;
 	return result;
 }
 
@@ -103,7 +143,7 @@ bool Simulation::WasPlayersAimLinearFunction(Entity* actor, list<Point2> mouseDr
 	
 	bool isLinear = Phys::IsFunctionLinear(Points, mouseDragOffsets.size());
 
-	delete Points;
+	delete[] Points;
 
 	actor->FlaggedAsCheater = true;
 	return isLinear;
@@ -113,7 +153,7 @@ bool Simulation::AreFramesSkipped(list<Point2> mouseDragOffsets, double threshol
 {
 	if (mouseDragOffsets.size() < 2)
 	{
-		printf("AreFramesSkipped: Data set anomaly\n");
+		printf("AreFramesSkipped: Data set anomaly, size of data set is too small!\n");
 		return false;
 	}
 
@@ -122,7 +162,7 @@ bool Simulation::AreFramesSkipped(list<Point2> mouseDragOffsets, double threshol
 	size_t i = 0;
 
 	for (const auto& point : mouseDragOffsets)
-		Points[i++] = point;
+		Points[i] = point;
 
 	//get distance between each consequtive point, since aiming creates points over time.
 	//usually we expect to get N points over X milliseconds, with there being a max distance the mouse can move within that time frame. 

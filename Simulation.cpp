@@ -16,9 +16,10 @@ void Simulation::RunAllTestCases()
 	Dataset_MouseAim->AddData({ 15.0f, 15.0f });
 
 	int currentId = 1;
-	Entity* potential_cheater = new Entity(currentId);
+	Entity* potential_cheater = new Entity(currentId++);
+	potential_cheater->AimData = Dataset_MouseAim;
 
-	if (WasPlayersAimLinearFunction(potential_cheater, Dataset_MouseAim->GetDataSet()))
+	if (WasPlayersAimLinearFunction(potential_cheater, Dataset_MouseAim->GetDataset()))
 	{
 		printf("Player %d's aim was linear: possibly cheating.\n", potential_cheater->UniqueId);
 		potential_cheater->FlaggedAsCheater = true;
@@ -28,7 +29,7 @@ void Simulation::RunAllTestCases()
 		printf("The dataset of player %d's shot aim looks okay!\n", potential_cheater->UniqueId);
 	}
 
-	if (AreFramesSkipped(Dataset_MouseAim->GetDataSet(), 10.0f))
+	if (AreFramesSkipped(Dataset_MouseAim->GetDataset(), 10.0f))
 	{
 		printf("Player's aim skips faster than our threshold allows, possibly cheating.\n");
 		potential_cheater->FlaggedAsCheater = true;
@@ -42,52 +43,65 @@ void Simulation::RunAllTestCases()
 	Dataset_MouseAimLinear->AddData({ 0.0f, 10.0f });
 	Dataset_MouseAimLinear->AddData({ 0.0f, 12.0f });
 
-	if (WasPlayersAimLinearFunction(potential_cheater, Dataset_MouseAimLinear->GetDataSet()))
+	Entity* potential_cheater_2 = new Entity(currentId++);
+	potential_cheater_2->AimData = Dataset_MouseAimLinear;
+
+	if (WasPlayersAimLinearFunction(potential_cheater, Dataset_MouseAimLinear->GetDataset()))
 	{
-		printf("Player %d's aim was linear: possibly cheating.\n", potential_cheater->UniqueId);
+		printf("Player %d's aim was linear: possibly cheating.\n", potential_cheater_2->UniqueId);
 	}
 	else
 	{
-		printf("The dataset of player %d's shot aim looks ok!\n", potential_cheater->UniqueId);
+		printf("The dataset of player %d's shot aim looks ok!\n", potential_cheater_2->UniqueId);
 	}
 
 	//last 5 points in dataset are colinear
 	Dataset<Point2>* Dataset_MouseAimColinear = new Dataset<Point2>();
 	Dataset_MouseAimColinear->AddData({ 0.0f, 0.0f });
-	Dataset_MouseAimColinear->AddData({ 1, 1 }); //not colinear
-	Dataset_MouseAimColinear->AddData({ 1, 3 });
-	Dataset_MouseAimColinear->AddData({ 2, 4 });
-	Dataset_MouseAimColinear->AddData({ 4, 4 });
-	Dataset_MouseAimColinear->AddData({ 5, 6 });
-	Dataset_MouseAimColinear->AddData({ 6, 4 });
-	Dataset_MouseAimColinear->AddData({ 7, 6 });
-	Dataset_MouseAimColinear->AddData({ 8, 5 });
-	Dataset_MouseAimColinear->AddData({ 9, 10 });
-	Dataset_MouseAimColinear->AddData({ 14, 14 });
-	Dataset_MouseAimColinear->AddData({ 16, 12 });
-	Dataset_MouseAimColinear->AddData({ 18, 12 });
-	Dataset_MouseAimColinear->AddData({ 16, 14 });
+	Dataset_MouseAimColinear->AddData({ 1.0f, 1.0f }); //not colinear
+	Dataset_MouseAimColinear->AddData({ 1.0f, 3.0f });
+	Dataset_MouseAimColinear->AddData({ 2.0f, 4.0f });
+	Dataset_MouseAimColinear->AddData({ 4.0f, 4.0f });
+	Dataset_MouseAimColinear->AddData({ 5.0f, 6.0f });
+	Dataset_MouseAimColinear->AddData({ 6.0f, 4.0f });
+	Dataset_MouseAimColinear->AddData({ 7.0f, 6.0f });
+	Dataset_MouseAimColinear->AddData({ 8.0f, 5.0f });
+	Dataset_MouseAimColinear->AddData({ 9.0f, 10.0f });
+	Dataset_MouseAimColinear->AddData({ 14.0f, 14.0f });
+	Dataset_MouseAimColinear->AddData({ 16.0f, 12.0f });
+	Dataset_MouseAimColinear->AddData({ 18.0f, 12.0f });
+	Dataset_MouseAimColinear->AddData({ 16.0f, 14.0f });
 
-	Dataset_MouseAimColinear->AddData({ 17, 15 }); //colinear
-	Dataset_MouseAimColinear->AddData({ 18, 16 });
-	Dataset_MouseAimColinear->AddData({ 19, 17 });
-	Dataset_MouseAimColinear->AddData({ 20, 18 });
-	Dataset_MouseAimColinear->AddData({ 21, 19 });
+	Dataset_MouseAimColinear->AddData({ 17.0f, 15.0f }); //colinear
+	Dataset_MouseAimColinear->AddData({ 18.0f, 16.0f });
+	Dataset_MouseAimColinear->AddData({ 19.0f, 17.0f });
+	Dataset_MouseAimColinear->AddData({ 20.0f, 18.0f });
+	Dataset_MouseAimColinear->AddData({ 21.0f, 19.0f });
 
-	int colinear_threshold = 5; //colinear points within the dataset could indicate a cheat tool is auto-correcting aim to hit targets last-second
+	Entity* potential_cheater_3 = new Entity(currentId++);
+	potential_cheater_3->AimData = Dataset_MouseAimColinear;
 
-	if (HasColinearPoints(Dataset_MouseAimColinear->GetDataSet(), colinear_threshold))
+	int colinear_threshold = 5; //colinear points within the dataset could indicate a cheat tool is auto-correcting aim to hit targets last-second -> a vector is formed by the cheat software from the current aim position to the target
+
+	if (HasColinearPoints(Dataset_MouseAimColinear->GetDataset(), colinear_threshold))
 	{
-		printf("Player %d's aim was likely auto-corrected by a cheat to hit the target .. points were found to be colinear\n", potential_cheater->UniqueId);
+		printf("Player %d's aim was likely auto-corrected by a cheat to hit the target .. points were found to be colinear\n", potential_cheater_3->UniqueId);
 		potential_cheater->FlaggedAsCheater = true;
+	}
+
+	if (AllPointsPerfectlyRounded(Dataset_MouseAimColinear->GetDataset()))
+	{
+		printf("All points in the dataset were perfectly rounded, implying some lazy cheat maker forgot to make their auto-aim human-like  \n");
 	}
 
 	delete Dataset_MouseAim;
 	delete Dataset_MouseAimLinear;
 	delete potential_cheater;
+	delete potential_cheater_2;
+	delete potential_cheater_3;
 }
 
-//::HasColinearPoints helps us detect datasets where a player is aiming at another player and a cheat tool corrects their aim last second
+//::HasColinearPoints helps us detect datasets where a player is aiming at another player and a cheat tool corrects their aim last second during user click/weapon fired
 // -> Checks if a linear function is within a subset of points
 //threshold is the number of points in a row within the dataset to test. 
 bool Simulation::HasColinearPoints(list<Point2> mouseDragOffsets, int threshold)
@@ -180,6 +194,19 @@ bool Simulation::AreFramesSkipped(list<Point2> mouseDragOffsets, double threshol
 	return false;
 }
 
+bool Simulation::AllPointsPerfectlyRounded(list<Point2> points)
+{
+	for (const auto& point : points)
+	{
+		if (!(point.X == (int)point.X && point.Y == (int)point.Y))
+		{
+			return false;
+		}
+	}
+
+	return true; // All points are perfectly rounded
+}
+
 void Simulation::TestBasicPhysics() //simple 3d space tests, not related to data set tests
 {
 	Entity* e = new Entity(1);
@@ -230,4 +257,5 @@ void Simulation::TestBasicPhysics() //simple 3d space tests, not related to data
 	delete e; e = nullptr;
 	delete t; t = nullptr;
 }
+
 

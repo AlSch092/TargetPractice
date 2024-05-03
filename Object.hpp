@@ -1,6 +1,7 @@
 //AlSch092 @ github
 #pragma once
 #include "Physics.hpp"
+#include "Dataset.hpp"
 
 using namespace Phys;
 using namespace std;
@@ -31,21 +32,22 @@ namespace Objects
 
 	class Entity //our entity is essentially a line which is transformed on the xyz axis
 	{
-	public:
+		public:
 		Entity(int id) { UniqueId = id; }
 
-		Point3 StandingPosition;
-		Vector3 PointingAt;
+		Point3 StandingPosition = { 0.0f, 0.0f , 0.0f };;
+		Vector3 PointingAt = { 0.0f, 0.0f , 0.0f };;
 
-		unsigned int Type; //for hitbox sizing purposes, consider it your 'character' type. Size parameter would be set based on Type
-		Vector3 Size; //hitbox
+		unsigned int Type = 0; //for hitbox sizing purposes, consider it your 'character' type. Size parameter would be set based on Type
+		Vector3 Size = { 0.0f, 0.0f , 0.0f}; //hitbox
 
 		UID UniqueId = 0; //identifier
-		unsigned int Hitpoints = 100;
 
-		bool FlaggedAsCheater;
+		bool FlaggedAsCheater = false;
 
 		Shot* ShootInDirection(Vector3 aim);
+
+		Dataset<Point2>* AimData = nullptr;
 	};
 
 }

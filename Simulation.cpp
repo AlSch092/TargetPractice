@@ -37,11 +37,11 @@ void Simulation::RunAllTestCases()
 
 	if (WasPlayersAimLinearFunction(potential_cheater, Dataset_MouseAimLinear->GetDataset()))
 	{
-		printf("Player %d's aim was linear: possibly cheating.\n", potential_cheater_2->UniqueId);
+		cout << "Player's aim was linear: possibly cheating." << potential_cheater_2->UniqueId << endl;
 	}
 	else
 	{
-		printf("The dataset of player %d's shot aim looks ok!\n", potential_cheater_2->UniqueId);
+		cout << "The dataset of player " << potential_cheater_2->UniqueId << "'s shot aim looks okay!" << endl;
 	}
 
 	//last 5 points in dataset are colinear
@@ -54,13 +54,13 @@ void Simulation::RunAllTestCases()
 
 	if (HasColinearPoints(Dataset_MouseAimColinear->GetDataset(), colinear_threshold))
 	{
-		printf("Player %d's aim was likely auto-corrected by a cheat to hit the target .. points were found to be colinear\n", potential_cheater_3->UniqueId);
+		cout << "Player's aim was likely auto-corrected by a cheat to hit the target: " << potential_cheater_3->UniqueId << endl;
 		potential_cheater->FlaggedAsCheater = true;
 	}
 
 	if (AllPointsPerfectlyRounded(Dataset_MouseAimColinear->GetDataset()))
 	{
-		printf("All points in the dataset were perfectly rounded, implying some lazy cheat maker forgot to make their auto-aim human-like  \n");
+		cout << "All points in the dataset were perfectly rounded, implying some lazy cheat maker forgot to make their auto-aim human-like  " << endl;
 	}
 
 	delete Dataset_MouseAim;
@@ -107,7 +107,7 @@ bool Simulation::WasPlayersAimLinearFunction(Entity* actor, vector<Point2> mouse
 
 	if (actor == NULL)
 	{
-		printf("Actor pointer was NULL\n");
+		cout << "[ERROR] Actor pointer was NULL" << endl;
 		return false;
 	}
 
@@ -121,7 +121,7 @@ bool Simulation::AreFramesSkipped(vector<Point2> mouseDragOffsets, double thresh
 {
 	if (mouseDragOffsets.size() < 2)
 	{
-		printf("AreFramesSkipped: Data set anomaly, size of data set is too small!\n");
+		cout << "[ERROR] AreFramesSkipped: Data set anomaly, size of data set is too small!" << endl;
 		return false;
 	}
 
@@ -168,11 +168,11 @@ void Simulation::TestBasicPhysics() //simple 3d space tests, not related to data
 
 	if (Mechanics::IsColliding(e->StandingPosition, e->PointingAt, t->StandingPosition, t->Size)) //specific position check including 'size' of the entity as a hitbox
 	{
-		printf("[GAME] Shot hit target\n");
+		cout << "[GAME] Shot hit target" << endl;
 	}
 	else
 	{
-		printf("[GAME] Shot missed target, try again.\n");
+		cout << "[GAME] Shot missed target, try again." << endl;
 	}
 
 	Shot* s = new Shot();
@@ -186,7 +186,7 @@ void Simulation::TestBasicPhysics() //simple 3d space tests, not related to data
 	if (EntityIdCollision.size() > 0)
 	{
 		for each (UID id in EntityIdCollision)
-			printf("[GAME] Player %d's shot hit %d!\n", e->UniqueId, id);
+			cout << "[GAME] Player " << e->UniqueId << "'s shot hit " << id << "!" << endl;
 	}
 	
 	Shot* s_1 = new Shot();
@@ -196,8 +196,8 @@ void Simulation::TestBasicPhysics() //simple 3d space tests, not related to data
 	double AutoAimAngle = Mechanics::GetCorrectiveAngle(s_1, e); //shoot at E from T
 	Vector3 AutoAimVector = Mechanics::GetCorrectiveVector(s_1, e, 100.0);
 
-	printf("[INFO] Required angle to hit target: {%f}\n", AutoAimAngle);
-	printf("[INFO] Required vector to hit target: {%f,%f,%f}\n", AutoAimVector.X, AutoAimVector.Y, AutoAimVector.Z); //confirmed working -> gets us the vector needed to hit the target
+	cout << "[INFO] Required angle to hit target: " << AutoAimAngle << endl;
+	cout << "[INFO] Required vector to hit target: {" << AutoAimVector.X << "," << AutoAimVector.Y << "," << AutoAimVector.Z << "}" << endl;
 
 	delete s_1; s_1 = nullptr;
 	delete e; e = nullptr;

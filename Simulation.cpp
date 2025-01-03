@@ -1,8 +1,7 @@
 //AlSch092 @ github
 #include "Simulation.hpp"
 
-
-//for such tests we are assuming this is data recieved the server-side
+//for such tests we are assuming this is data recieved on the server-side
 void Simulation::RunAllTestCases()
 {
 	cout << endl << "[INFO - Simulation::Run] Testing dataset - related techniques : " << endl;

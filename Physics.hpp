@@ -1,6 +1,9 @@
 //AlSch092 @ github
 #pragma once
 #include <math.h>
+#include <vector>
+
+using namespace std;
 
 namespace Phys
 {
@@ -30,5 +33,5 @@ namespace Phys
 	double CalculateSlope(Point2 p1, Point2 p2); //slope between two 2D points -> can be used for detecting first-person aiming anomalies
 	double CalculateDistance(Point2 p1, Point2 p2);
 	
-	bool IsFunctionLinear(Point2 aimingPoints[], int num_points);
+	bool IsFunctionLinear(vector<Point2> aimingPoints, int count);
 }

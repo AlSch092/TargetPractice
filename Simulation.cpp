@@ -1,47 +1,36 @@
 //AlSch092 @ github
 #include "Simulation.hpp"
 
+
 //for such tests we are assuming this is data recieved the server-side
 void Simulation::RunAllTestCases()
 {
-	printf("\n[INFO - Simulation::Run] Testing dataset-related techniques: \n");
+	cout << endl << "[INFO - Simulation::Run] Testing dataset - related techniques : " << endl;
 
 	//this dataset is linear until last point, where it suddenly skips past our threshold amount: our second method will detect it as cheating but first method will pass
-	Dataset<Point2>* Dataset_MouseAim = new Dataset<Point2>(); 
-	Dataset_MouseAim->AddData({ 1.0f, 2.0f });
-	Dataset_MouseAim->AddData({ 2.0f, 4.0f });
-	Dataset_MouseAim->AddData({ 3.0f, 6.0f });
-	Dataset_MouseAim->AddData({ 4.0f, 8.0f });
-	Dataset_MouseAim->AddData({ 5.0f, 10.0f });
-	Dataset_MouseAim->AddData({ 15.0f, 15.0f });
+	Dataset<Point2>* Dataset_MouseAim = Simulation::ReadDataPointsFromFile("./first_test.txt");
 
 	int currentId = 1;
 	Entity* potential_cheater = new Entity(currentId++);
 	potential_cheater->AimData = Dataset_MouseAim;
 
-	if (WasPlayersAimLinearFunction(potential_cheater, Dataset_MouseAim->GetDataset()))
+	if (WasPlayersAimLinearFunction(potential_cheater, Dataset_MouseAim->GetDataset())) //should pass okay
 	{
-		printf("Player %d's aim was linear: possibly cheating.\n", potential_cheater->UniqueId);
+		cout << "Player's aim was linear: possibly cheating: " << potential_cheater->UniqueId << endl;
 		potential_cheater->FlaggedAsCheater = true;
 	}
 	else
 	{
-		printf("The dataset of player %d's shot aim looks okay!\n", potential_cheater->UniqueId);
+		cout << "The dataset of player " << potential_cheater->UniqueId << "'s shot aim looks okay!" << endl;
 	}
 
-	if (AreFramesSkipped(Dataset_MouseAim->GetDataset(), 10.0f))
+	if (AreFramesSkipped(Dataset_MouseAim->GetDataset(), 10.0f)) //should flag
 	{
-		printf("Player's aim skips faster than our threshold allows, possibly cheating.\n");
+		cout << "Player's aim skips faster than our threshold allows, possibly cheating." << endl;
 		potential_cheater->FlaggedAsCheater = true;
 	}
 
-	Dataset<Point2>* Dataset_MouseAimLinear = new Dataset<Point2>();
-	Dataset_MouseAimLinear->AddData({ 0.0f, 0.0f });
-	Dataset_MouseAimLinear->AddData({ 0.0f, 4.0f });
-	Dataset_MouseAimLinear->AddData({ 0.0f, 6.0f });
-	Dataset_MouseAimLinear->AddData({ 0.0f, 8.0f });
-	Dataset_MouseAimLinear->AddData({ 0.0f, 10.0f });
-	Dataset_MouseAimLinear->AddData({ 0.0f, 12.0f });
+	Dataset<Point2>* Dataset_MouseAimLinear = Simulation::ReadDataPointsFromFile("./second_test.txt");
 
 	Entity* potential_cheater_2 = new Entity(currentId++);
 	potential_cheater_2->AimData = Dataset_MouseAimLinear;
@@ -56,27 +45,7 @@ void Simulation::RunAllTestCases()
 	}
 
 	//last 5 points in dataset are colinear
-	Dataset<Point2>* Dataset_MouseAimColinear = new Dataset<Point2>();
-	Dataset_MouseAimColinear->AddData({ 0.0f, 0.0f });
-	Dataset_MouseAimColinear->AddData({ 1.0f, 1.0f }); //not colinear
-	Dataset_MouseAimColinear->AddData({ 1.0f, 3.0f });
-	Dataset_MouseAimColinear->AddData({ 2.0f, 4.0f });
-	Dataset_MouseAimColinear->AddData({ 4.0f, 4.0f });
-	Dataset_MouseAimColinear->AddData({ 5.0f, 6.0f });
-	Dataset_MouseAimColinear->AddData({ 6.0f, 4.0f });
-	Dataset_MouseAimColinear->AddData({ 7.0f, 6.0f });
-	Dataset_MouseAimColinear->AddData({ 8.0f, 5.0f });
-	Dataset_MouseAimColinear->AddData({ 9.0f, 10.0f });
-	Dataset_MouseAimColinear->AddData({ 14.0f, 14.0f });
-	Dataset_MouseAimColinear->AddData({ 16.0f, 12.0f });
-	Dataset_MouseAimColinear->AddData({ 18.0f, 12.0f });
-	Dataset_MouseAimColinear->AddData({ 16.0f, 14.0f });
-
-	Dataset_MouseAimColinear->AddData({ 17.0f, 15.0f }); //colinear
-	Dataset_MouseAimColinear->AddData({ 18.0f, 16.0f });
-	Dataset_MouseAimColinear->AddData({ 19.0f, 17.0f });
-	Dataset_MouseAimColinear->AddData({ 20.0f, 18.0f });
-	Dataset_MouseAimColinear->AddData({ 21.0f, 19.0f });
+	Dataset<Point2>* Dataset_MouseAimColinear = Simulation::ReadDataPointsFromFile("./third_test.txt");
 
 	Entity* potential_cheater_3 = new Entity(currentId++);
 	potential_cheater_3->AimData = Dataset_MouseAimColinear;
@@ -104,41 +73,35 @@ void Simulation::RunAllTestCases()
 //::HasColinearPoints helps us detect datasets where a player is aiming at another player and a cheat tool corrects their aim last second during user click/weapon fired
 // -> Checks if a linear function is within a subset of points
 //threshold is the number of points in a row within the dataset to test. 
-bool Simulation::HasColinearPoints(list<Point2> mouseDragOffsets, int threshold)
+bool Simulation::HasColinearPoints(vector<Point2> mouseDragOffsets, int threshold)
 {
-	bool result = false;
-	int count = 0;
+	bool foundLinearSubset = false;
 
-	Point2* pt_list = new Point2[mouseDragOffsets.size()]; //copy managed list to contiguous array such that we can compare subsets with changing index counts
-	
-	std::list<Point2>::iterator it;
-	for (it = mouseDragOffsets.begin(); it != mouseDragOffsets.end(); ++it) 
+	for (int i = 0; i < mouseDragOffsets.size(); i++)
 	{
-		pt_list[count].X = it._Ptr->_Myval.X;
-		pt_list[count].Y = it._Ptr->_Myval.Y;
-		count++;
+		if (i + threshold > mouseDragOffsets.size())
+			break;
+
+		vector<Point2> subset(mouseDragOffsets.begin() + i, mouseDragOffsets.begin() + i + threshold); //proabably quite slow computationally since we need to copy N subsets
+
+		if (Phys::IsFunctionLinear(subset, threshold))
+		{
+			foundLinearSubset = true;
+			break;
+		}
 	}
 
-	for (int j = 0; j < count - threshold; j++)
-	{
-		bool isLinear = Phys::IsFunctionLinear(&pt_list[j], threshold); //perfectly linear means someone is probably cheating
-
-		if (isLinear)
-			result = true;
-	}
-
-	delete[] pt_list;
-	return result;
+	return foundLinearSubset; //perfectly linear means someone is probably cheating
 }
 
 //the previous X frames from the PoV of a player shooting: 
-//if the function/line created by a player's 'drag' of the mouse is linear, it's probably a cheater
+//if the function/line created by a player's 'drag' of the mouse is fully linear, it's probably a cheater
 // -> if the tangents equal at every point in this set, the function is linear and thus "unnatural" 
-bool Simulation::WasPlayersAimLinearFunction(Entity* actor, list<Point2> mouseDragOffsets)
+bool Simulation::WasPlayersAimLinearFunction(Entity* actor, vector<Point2> mouseDragOffsets)
 {
 	if (mouseDragOffsets.size() < 2 )
 	{
-		printf("WasPlayersAimLinearFunction: Data set anomaly\n");
+		cout << "WasPlayersAimLinearFunction: Data set anomaly, size of data set is too small!" << endl;
 		return false;
 	}
 
@@ -148,22 +111,13 @@ bool Simulation::WasPlayersAimLinearFunction(Entity* actor, list<Point2> mouseDr
 		return false;
 	}
 
-	Point2* Points = new Point2[mouseDragOffsets.size()];
-
-	size_t i = 0;
-
-	for (const auto& point : mouseDragOffsets) 
-		Points[i++] = point;
-	
-	bool isLinear = Phys::IsFunctionLinear(Points, mouseDragOffsets.size());
-
-	delete[] Points;
+	bool isLinear = Phys::IsFunctionLinear(mouseDragOffsets, mouseDragOffsets.size());
 
 	actor->FlaggedAsCheater = true;
 	return isLinear;
 }
 
-bool Simulation::AreFramesSkipped(list<Point2> mouseDragOffsets, double threshold)
+bool Simulation::AreFramesSkipped(vector<Point2> mouseDragOffsets, double threshold)
 {
 	if (mouseDragOffsets.size() < 2)
 	{
@@ -171,30 +125,22 @@ bool Simulation::AreFramesSkipped(list<Point2> mouseDragOffsets, double threshol
 		return false;
 	}
 
-	Point2* Points = new Point2[mouseDragOffsets.size()];
-
-	size_t i = 0;
-
-	for (const auto& point : mouseDragOffsets)
-		Points[i] = point;
-
 	//get distance between each consequtive point, since aiming creates points over time.
 	//usually we expect to get N points over X milliseconds, with there being a max distance the mouse can move within that time frame. 
 	for (int i = 0; i < mouseDragOffsets.size() - 1; i++)  
 	{
-		double distance = CalculateDistance(Points[i], Points[i + 1]);
+		double distance = CalculateDistance(mouseDragOffsets[i], mouseDragOffsets[i + 1]);
+
 		if (distance > threshold) 
 		{
-			delete[] Points;
 			return true; // Found an invalid point
 		}
 	}
 
-	delete[] Points;
 	return false;
 }
 
-bool Simulation::AllPointsPerfectlyRounded(list<Point2> points)
+bool Simulation::AllPointsPerfectlyRounded(vector<Point2> points)
 {
 	for (const auto& point : points)
 	{

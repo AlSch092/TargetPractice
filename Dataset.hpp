@@ -1,6 +1,6 @@
 #pragma once
-#include <Windows.h>
-#include <list>
+#include <vector>
+
 using namespace std;
 
 template<typename T>
@@ -8,10 +8,10 @@ class Dataset
 {
 public:
 
-	list<T> GetDataset() { return this->Data; }
+	vector<T> GetDataset() { return this->Data; }
 
-	void AddData(T data) { Data.push_back(data); }
+	void AddData(T data) { Data.emplace_back(data); }
 
 private:
-	list<T> Data;
+	vector<T> Data;
 };

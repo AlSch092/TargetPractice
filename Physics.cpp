@@ -11,14 +11,14 @@ double Phys::CalculateSlope(Point2 p1, Point2 p2)  //calculate the slope between
 	return (p2.Y - p1.Y) / (p2.X - p1.X);
 }
 
-bool Phys::IsFunctionLinear(Point2 points[], int num_points) {
-	
+bool Phys::IsFunctionLinear(vector<Point2> points, int num_points) 
+{	
 	if (num_points < 2) //data set anomaly
 		return false;
 	
-	double slope = Phys::CalculateSlope(points[0], points[1]); //first tangent slope in set, now check if the rest are equal
+	double slope = 0.0f;
 
-	for (int i = 1; i < num_points - 2; i++) 
+	for (int i = 0; i < num_points - 1; i++) 
 	{
 		double current_slope = Phys::CalculateSlope(points[i], points[i + 1]);
 		if (current_slope != slope) 		

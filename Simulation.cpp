@@ -1,13 +1,14 @@
 //AlSch092 @ github
 #include "Simulation.hpp"
 
-//for such tests we are assuming this is data recieved on the server-side
+
+//for such tests we are assuming this is data recieved the server-side
 void Simulation::RunAllTestCases()
 {
 	cout << endl << "[INFO - Simulation::Run] Testing dataset - related techniques : " << endl;
 
 	//this dataset is linear until last point, where it suddenly skips past our threshold amount: our second method will detect it as cheating but first method will pass
-	Dataset<Point2>* Dataset_MouseAim = Simulation::ReadDataPointsFromFile("./first_test.txt");
+	Dataset<Point2>* Dataset_MouseAim = Simulation::ReadDataPointsFromFile("./Tests/first_test.txt");
 
 	int currentId = 1;
 	Entity* potential_cheater = new Entity(currentId++);
@@ -29,7 +30,7 @@ void Simulation::RunAllTestCases()
 		potential_cheater->FlaggedAsCheater = true;
 	}
 
-	Dataset<Point2>* Dataset_MouseAimLinear = Simulation::ReadDataPointsFromFile("./second_test.txt");
+	Dataset<Point2>* Dataset_MouseAimLinear = Simulation::ReadDataPointsFromFile("./Tests/second_test.txt");
 
 	Entity* potential_cheater_2 = new Entity(currentId++);
 	potential_cheater_2->AimData = Dataset_MouseAimLinear;
@@ -44,7 +45,7 @@ void Simulation::RunAllTestCases()
 	}
 
 	//last 5 points in dataset are colinear
-	Dataset<Point2>* Dataset_MouseAimColinear = Simulation::ReadDataPointsFromFile("./third_test.txt");
+	Dataset<Point2>* Dataset_MouseAimColinear = Simulation::ReadDataPointsFromFile("./Tests/third_test.txt");
 
 	Entity* potential_cheater_3 = new Entity(currentId++);
 	potential_cheater_3->AimData = Dataset_MouseAimColinear;
